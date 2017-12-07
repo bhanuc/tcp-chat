@@ -30,13 +30,17 @@ class Server {
                         if (!meta) {
                             socket.write(`join needs a roomname, ex: join csgo\n`);
                         }
-                        const {currentRoom} = meta;
+                        const {currentRoom} = client;
                         //exit the current room
                         server.rooms[currentRoom].splice(server.rooms[currentRoom].indexOf(client), 1);
                         // join the new room
                         client.currentRoom = meta;
                         server.rooms[meta] && Array.isArray(server.rooms[meta])? server.rooms[meta].push(client):server.rooms[meta] = [client];
-                        client.sendMessage(`You have joined: ${meta}`);
+                        client.sendMessage(`You have joined: ${meta} \n`);
+                        server.history.getHistory(meta).forEach(element => {
+                            client.sendMessage(element + '\n');
+                        });
+                        server.broadcast(meta, `${clientName} joined: ${meta}`, client);
                         break;
                     case 'join':
                         client.currentRoom = meta;
