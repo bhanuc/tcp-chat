@@ -4,7 +4,7 @@ const net = require('net');
 const client = new net.Socket();
 
 client.on('data', function (data) {
-    this.vorpal.log('Received>' + data);
+    this.vorpal.log(data.toString());
 });
 
 client.on('close', function () {
@@ -31,8 +31,6 @@ vorpal
             callback();
         });
 
-        this.log('you have joined ', args);
-
     });
 
 
@@ -40,10 +38,8 @@ vorpal
 vorpal
     .command('msg <msg>', 'sends a msg')
     .action(function (args, callback) {
+        const msg = this.commandObject._parent._command.command.split('msg ')[1];
         const self = this;
-        const {
-            msg
-        } = args;
         client.write(`msg>${msg}`);
         callback();
     });

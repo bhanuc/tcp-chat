@@ -23,7 +23,7 @@ class Server {
             server.rooms.global.push(client);
 
             socket.on('data', (data) => {
-                let m = data.toString().replace(/[\n\r]*$/, '');
+                let m = data.toString().replace(/[\n\r]*$/, '').replace(/[^\x00-\x7F]/g, "");
                 const [command, meta] = m.split('>');
                 switch (command) {
                     case 'change':
@@ -45,8 +45,12 @@ class Server {
                         server.broadcast(meta, `${clientName} joined: ${meta}`, client)
                         break;
                     case 'msg':
-                        client.sendMessage(`You said: ${meta}`);
-                        server.broadcast(client.currentRoom, `${clientName} said: ${meta}`, client)
+                        if (meta.length >128) {
+                            client.sendMessage(`We only support 128 characters at the moment.`);
+                        } else {
+                            client.sendMessage(`You said: ${meta}`);
+                            server.broadcast(client.currentRoom, `${clientName} said: ${meta}`, client)
+                        }
                         break;
                     default:
                         socket.write(`Unrecognised command, kindly type 'help' to get started\n`);
@@ -59,6 +63,9 @@ class Server {
                 server.rooms[currentRoom].splice(server.rooms[currentRoom].indexOf(client), 1);
                 console.log(`${client.name} disconnected from ${currentRoom}`);
                 server.broadcast(currentRoom, `${client.name} disconnected from ${currentRoom}`);
+            });
+            socket.on('error', (err) => {
+                console.log(err);
             });
         });
 
