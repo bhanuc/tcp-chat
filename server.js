@@ -24,14 +24,39 @@ class Server {
 
             socket.on('data', (data) => {
                 let m = data.toString().replace(/[\n\r]*$/, '');
-                console.log(`${clientName} said: ${m}`);
-                socket.write(`We got your message (${m}). Thanks!\n`);
-                server.broadcast('global', `${clientName} said: ${m}`, client)
+                const [command, meta] = m.split('>');
+                switch (command) {
+                    case 'change':
+                        if (!meta) {
+                            socket.write(`join needs a roomname, ex: join csgo\n`);
+                        }
+                        const {currentRoom} = meta;
+                        //exit the current room
+                        server.rooms[currentRoom].splice(server.rooms[currentRoom].indexOf(client), 1);
+                        // join the new room
+                        client.currentRoom = meta;
+                        server.rooms[meta] && Array.isArray(server.rooms[meta])? server.rooms[meta].push(client):server.rooms[meta] = [client];
+                        client.sendMessage(`You have joined: ${meta}`);
+                        break;
+                    case 'join':
+                        client.currentRoom = meta;
+                        server.rooms[meta].push(client);
+                        client.sendMessage(`You have joined: ${meta}`);
+                        server.broadcast(meta, `${clientName} joined: ${meta}`, client)
+                        break;
+                    case 'msg':
+                        client.sendMessage(`You said: ${meta}`);
+                        server.broadcast(client.currentRoom, `${clientName} said: ${meta}`, client)
+                        break;
+                    default:
+                        socket.write(`Unrecognised command, kindly type 'help' to get started\n`);
+                        break;
+                }
             });
 
             socket.on('end', () => {
                 const {currentRoom} = client;
-                server.rooms[currentRoom].clients.splice(server.rooms[currentRoom].clients.indexOf(client), 1);
+                server.rooms[currentRoom].splice(server.rooms[currentRoom].indexOf(client), 1);
                 console.log(`${client.name} disconnected from ${currentRoom}`);
                 server.broadcast(currentRoom, `${client.name} disconnected from ${currentRoom}`);
             });
