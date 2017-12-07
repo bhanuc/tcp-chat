@@ -3,11 +3,15 @@
 class Client {
   
   constructor (socket) {
-    this.address = socket.remoteAddress;
-    this.port    = socket.remotePort;
-    this.name    = `${this.address}:${this.port}`;
-    this.socket  = socket;
-    this.currentRoom = 'global';
+    const self = this;
+    self.address = socket.remoteAddress;
+    self.port    = socket.remotePort;
+    self.name    = `${self.address}:${self.port}`;
+    self.socket  = socket;
+    self.currentRoom = 'global';
+    self.socket.on('error', (err) => {
+        console.log(err, TODO);
+    });
   }
 
   sendMessage (message) {

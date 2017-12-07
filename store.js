@@ -23,7 +23,7 @@ class Store {
   }
   getHistory (room) {
     const roomHistory = this.history[room];
-    return roomHistory || {};
+    return roomHistory || [];
   }
 
 }

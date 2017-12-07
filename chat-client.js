@@ -10,6 +10,11 @@ client.on('data', function (data) {
 client.on('close', function () {
     this.vorpal.log('Connection closed');
 });
+
+client.on('error', (err) => {
+    this.vorpal.log(err);
+});
+
 console.log('chat$ Type help to get started')
 vorpal
     .command('room', 'returns the connected room')

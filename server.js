@@ -41,13 +41,18 @@ class Server {
                     case 'join':
                         client.currentRoom = meta;
                         server.rooms[meta].push(client);
-                        client.sendMessage(`You have joined: ${meta}`);
+                        client.sendMessage(`You have joined: ${meta} \n`);
+                        server.history.getHistory(meta).forEach(element => {
+                            client.sendMessage(element + '\n');
+                        });
                         server.broadcast(meta, `${clientName} joined: ${meta}`, client)
                         break;
                     case 'msg':
                         if (meta.length >128) {
                             client.sendMessage(`We only support 128 characters at the moment.`);
                         } else {
+                            const {currentRoom} = client;
+                            server.history.addMessage(`${clientName} said: ${meta}`, currentRoom)
                             client.sendMessage(`You said: ${meta}`);
                             server.broadcast(client.currentRoom, `${clientName} said: ${meta}`, client)
                         }
