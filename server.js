@@ -23,7 +23,7 @@ class Server {
             server.rooms.global[clientName] = client;
 
             socket.on('data', (data) => {
-                let m = data.toString().replace(/[\n\r]*$/, '').replace(/[^\x00-\x7F]/g, "");
+                let m = data.toString().replace(/[^\x00-\x7F]/g, "").replace(/[\n\r]*$/, '');
                 const [command, meta] = m.split('>');
                 switch (command) {
                     case 'change':
