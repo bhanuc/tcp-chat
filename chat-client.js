@@ -8,7 +8,10 @@ client.on('data', function (data) {
 });
 
 client.on('close', function () {
-    this.vorpal.log('Connection closed');
+    this.vorpal != undefined ? this.vorpal.log('connection stopped or cannot connect, client will exit') : console.log('connection stopped or cannot connect, client will exit');
+});
+client.on('error', function () {
+    this.vorpal ? this.vorpal.log('Seems the default server is not running, kindly pass in correct server configuration') : console.log('Seems you are not connected to the server, kindly connect to a server');
 });
 
 
@@ -20,18 +23,18 @@ vorpal
         callback();
     });
 vorpal
-    .command('join [ip] [port] [roomName]', 'Allows you to join the server, args are optional')
+    .command('join [ip] [port] [roomName]', 'Allows you to join the server, args are optional when using default config for server')
     .action(function (args, callback) {
         const self = this;
         const roomName = args.roomName || 'global';
         const ip = args.ip || '127.0.0.1';
         const port = args.port || '5000';
-
         client.connect(port, ip, function () {
             client.vorpal = self;
             client.write(`join>${roomName}`);
             callback();
         });
+
 
     });
 
@@ -47,7 +50,7 @@ vorpal
         } catch (error) {
             vorpal.log('Either you have not joined a server or your connection to the server has dropped.')
         }
-        
+
         callback();
     });
 
