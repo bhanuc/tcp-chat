@@ -11,9 +11,6 @@ client.on('close', function () {
     this.vorpal.log('Connection closed');
 });
 
-client.on('error', (err) => {
-    this.vorpal.log(err);
-});
 
 console.log('chat$ Type help to get started')
 vorpal
@@ -45,7 +42,12 @@ vorpal
     .action(function (args, callback) {
         const msg = this.commandObject._parent._command.command.split('msg ')[1];
         const self = this;
-        client.write(`msg>${msg}`);
+        try {
+            client.write(`msg>${msg}`);
+        } catch (error) {
+            vorpal.log('Either you have not joined a server or your connection to the server has dropped.')
+        }
+        
         callback();
     });
 

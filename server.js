@@ -8,7 +8,7 @@ class Server {
         this.port = port || 5000;
         this.address = address || '127.0.0.1';
         this.rooms = {
-            'global': []
+            'global': {}
         };
         this.history = new Store(128);
     }
@@ -20,7 +20,7 @@ class Server {
             const clientName = client.name;
             server.broadcast('global', `${client.name} connected.\n`, client);
 
-            server.rooms.global.push(client);
+            server.rooms.global[clientName] = client;
 
             socket.on('data', (data) => {
                 let m = data.toString().replace(/[\n\r]*$/, '').replace(/[^\x00-\x7F]/g, "");
@@ -30,12 +30,16 @@ class Server {
                         if (!meta) {
                             socket.write(`join needs a roomname, ex: join csgo\n`);
                         }
-                        const {currentRoom} = client;
+                        let {currentRoom} = client;
                         //exit the current room
-                        server.rooms[currentRoom].splice(server.rooms[currentRoom].indexOf(client), 1);
+                        server.broadcast(currentRoom, `${clientName} left: ${currentRoom}`, client);
+                        server.rooms[currentRoom].clientName = undefined;
                         // join the new room
                         client.currentRoom = meta;
-                        server.rooms[meta] && Array.isArray(server.rooms[meta])? server.rooms[meta].push(client):server.rooms[meta] = [client];
+                        if (!server.rooms.hasOwnProperty(meta)) {
+                            server.rooms[meta] = {};
+                        }
+                        server.rooms[meta][clientName] = client;
                         client.sendMessage(`You have joined: ${meta} \n`);
                         server.history.getHistory(meta).forEach(element => {
                             client.sendMessage(element + '\n');
@@ -44,7 +48,7 @@ class Server {
                         break;
                     case 'join':
                         client.currentRoom = meta;
-                        server.rooms[meta].push(client);
+                        server.rooms[meta][clientName] = client;
                         client.sendMessage(`You have joined: ${meta} \n`);
                         server.history.getHistory(meta).forEach(element => {
                             client.sendMessage(element + '\n');
@@ -68,8 +72,8 @@ class Server {
             });
 
             socket.on('end', () => {
-                const {currentRoom} = client;
-                server.rooms[currentRoom].splice(server.rooms[currentRoom].indexOf(client), 1);
+                const {currentRoom, clientName} = client;
+                server.rooms[currentRoom][clientName] = undefined;
                 console.log(`${client.name} disconnected from ${currentRoom}`);
                 server.broadcast(currentRoom, `${client.name} disconnected from ${currentRoom}`);
             });
@@ -84,10 +88,13 @@ class Server {
     }
 
     broadcast(room, message, clientSender) {
-        const clients = this.rooms[room];
-        clients.forEach((client) => {
-            if (client === clientSender)
+        const self = this;
+        const clients = Object.keys(self.rooms[room]);
+        clients.forEach((key) => {
+            const client = self.rooms[room][key];
+            if (client === clientSender) {
                 return;
+            }
             client.sendMessage(message);
         });
         console.log(message.replace(/\n+$/, ""));

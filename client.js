@@ -10,7 +10,7 @@ class Client {
     self.socket  = socket;
     self.currentRoom = 'global';
     self.socket.on('error', (err) => {
-        console.log(err, TODO);
+        console.log(err);
     });
   }
 
