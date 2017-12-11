@@ -1,30 +1,28 @@
-'use strict';
+
 
 class Store {
-  
-  constructor (size) {
+  constructor() {
     this.history = {};
   }
-  addMessage (msg, room) {
-      if (!this.history.hasOwnProperty(room)) {
-        this.history[room] = [];
-      }
-    this._addMessage(msg, room);
+  addMessage(msg, room) {
+    if (!Object.prototype.hasOwnProperty.call(this.history, room)) {
+      this.history[room] = [];
+    }
+    this.addmessage(msg, room);
   }
 
-  _addMessage (msg, room) {
-      const roomHistory = this.history[room]
-        if (roomHistory.length >= 128) {
-            while (roomHistory.length > 127) {
-                roomHistory.pop();
-            }
-        }
-        roomHistory.unshift(msg)
+  addmessage(msg, room) {
+    const roomHistory = this.history[room];
+    if (roomHistory.length >= 128) {
+      while (roomHistory.length > 127) {
+        roomHistory.pop();
+      }
+    }
+    roomHistory.unshift(msg);
   }
-  getHistory (room) {
+  getHistory(room) {
     const roomHistory = this.history[room];
     return roomHistory || [];
   }
-
 }
 module.exports = Store;
